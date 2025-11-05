@@ -1,0 +1,76 @@
+// ===========================================
+// PRISMA SCHEMA CAPSTONE 2
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =======================
+// USERS TABLE
+// =======================
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String   @unique
+  password  String
+  role      String   @default("warga") // bisa: 'warga' atau 'admin'
+  surveys   Survey[] // relasi 1 user bisa buat banyak survey
+  createdAt DateTime @default(now())
+}
+
+// =======================
+// SURVEY TABLE
+// =======================
+model Survey {
+  id          Int           @id @default(autoincrement())
+  namaSurvey  String
+  deskripsi   String?
+  tanggalDibuat DateTime     @default(now())
+  userId      Int
+  user        User           @relation(fields: [userId], references: [id])
+  pertanyaan  Pertanyaan[]
+  hasilSurvey HasilSurvey[]
+}
+
+// =======================
+// PERTANYAAN TABLE
+// =======================
+model Pertanyaan {
+  id          Int      @id @default(autoincrement())
+  pertanyaan  String
+  surveyId    Int
+  survey      Survey   @relation(fields: [surveyId], references: [id])
+}
+
+// =======================
+// UMKM TABLE
+// =======================
+model Umkm {
+  id                 Int      @id @default(autoincrement())
+  namaUsaha          String
+  namaPemilik        String
+  tahunBerdiri       Int
+  jumlahKaryawan     Int
+  jangkauanPemasaran String
+  fotoProduk         String?
+  dokumenIzin        String?
+  createdAt          DateTime @default(now())
+}
+
+// =======================
+// HASIL SURVEY TABLE
+// =======================
+model HasilSurvey {
+  id          Int      @id @default(autoincrement())
+  namaSurvey  String
+  detailJawaban String
+  surveyId    Int
+  survey      Survey   @relation(fields: [surveyId], references: [id])
+  createdAt   DateTime @default(now())
+}
