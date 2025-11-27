@@ -1,22 +1,29 @@
 import express from "express";
 import {
-  createQuestion,
+  createQuestions,
   getQuestionsBySurvey,
   getQuestion,
   updateQuestion,
   deleteQuestion
 } from "../controllers/questionController.js";
+
 import { authMiddleware, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// get all questions for a survey
+// GET all questions by survey
 router.get("/survey/:surveyId", getQuestionsBySurvey);
+
+// GET single
 router.get("/:id", getQuestion);
 
-// admin create/update/delete
-router.post("/", authMiddleware, adminOnly, createQuestion);
+// CREATE multiple questions
+router.post("/", authMiddleware, adminOnly, createQuestions);
+
+// UPDATE
 router.put("/:id", authMiddleware, adminOnly, updateQuestion);
+
+// DELETE
 router.delete("/:id", authMiddleware, adminOnly, deleteQuestion);
 
 export default router;

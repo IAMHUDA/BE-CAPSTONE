@@ -1,63 +1,137 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export const createQuestion = async (req, res) => {
+// CREATE multiple questions
+export const createQuestions = async (req, res) => {
   try {
-    const { surveyId, text, order } = req.body;
-    if (!surveyId || !text) return res.status(400).json({ message: "surveyId & text required" });
+    const { idSurvey, listPertanyaan } = req.body;
 
-    const q = await prisma.question.create({
-      data: { surveyId: Number(surveyId), text, order: order ? Number(order) : null }
+    if (!idSurvey || !listPertanyaan) {
+      return res.status(400).json({ message: "idSurvey & listPertanyaan required" });
+    }
+
+    const created = await prisma.$transaction(
+      listPertanyaan.map((q) =>
+        prisma.pertanyaan.create({
+          data: {
+            surveyId: Number(idSurvey),
+            tipe: q.tipe,
+            teks: q.teks,
+            urutan: q.urutan,
+            opsi: q.opsi ? JSON.stringify(q.opsi) : null
+          }
+        })
+      )
+    );
+
+    res.status(201).json({
+      message: "Pertanyaan berhasil dibuat",
+      data: {
+        id: idSurvey,
+        idSurvey,
+        listPertanyaan: created.map(q => ({
+          tipe: q.tipe,
+          teks: q.teks,
+          urutan: q.urutan,
+          opsi: q.opsi ? JSON.parse(q.opsi) : undefined
+        }))
+      }
     });
-    res.status(201).json(q);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// GET questions by survey
 export const getQuestionsBySurvey = async (req, res) => {
   try {
     const surveyId = Number(req.params.surveyId);
-    const questions = await prisma.question.findMany({
+
+    const list = await prisma.pertanyaan.findMany({
       where: { surveyId },
-      orderBy: { order: "asc" }
+      orderBy: { urutan: "asc" }
     });
-    res.json(questions);
+
+    res.json({
+      id: surveyId,
+      idSurvey: surveyId,
+      listPertanyaan: list.map(q => ({
+        tipe: q.tipe,
+        teks: q.teks,
+        urutan: q.urutan,
+        opsi: q.opsi ? JSON.parse(q.opsi) : undefined
+      }))
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// GET single question
 export const getQuestion = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const q = await prisma.question.findUnique({ where: { id }});
-    if (!q) return res.status(404).json({ message: "Not found" });
-    res.json(q);
+
+    const q = await prisma.pertanyaan.findUnique({ where: { id }});
+    if (!q) return res.status(404).json({ message: "Pertanyaan tidak ditemukan" });
+
+    res.json({
+      id: q.id,
+      idSurvey: q.surveyId,
+      tipe: q.tipe,
+      teks: q.teks,
+      urutan: q.urutan,
+      opsi: q.opsi ? JSON.parse(q.opsi) : undefined
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// UPDATE
 export const updateQuestion = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { text, order } = req.body;
-    const updated = await prisma.question.update({
+    const { tipe, teks, urutan, opsi } = req.body;
+
+    const updated = await prisma.pertanyaan.update({
       where: { id },
-      data: { text, order: order ? Number(order) : null }
+      data: {
+        tipe,
+        teks,
+        urutan,
+        opsi: opsi ? JSON.stringify(opsi) : null
+      }
     });
-    res.json(updated);
+
+    res.json({
+      message: "Pertanyaan berhasil diupdate",
+      data: {
+        id: updated.id,
+        tipe: updated.tipe,
+        teks: updated.teks,
+        urutan: updated.urutan,
+        opsi: updated.opsi ? JSON.parse(updated.opsi) : undefined
+      }
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// DELETE
 export const deleteQuestion = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    await prisma.question.delete({ where: { id }});
-    res.json({ message: "Deleted" });
+
+    await prisma.pertanyaan.delete({ where: { id }});
+
+    res.json({ message: "Pertanyaan berhasil dihapus" });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

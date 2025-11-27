@@ -1,13 +1,16 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+
 dotenv.config();
+
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer "))
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Token missing or malformed" });
+  }
 
   const token = authHeader.split(" ")[1];
 
@@ -20,9 +23,12 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
-
 export const adminOnly = (req, res, next) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-  if (req.user.role !== "ADMIN") return res.status(403).json({ message: "Admin only" });
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
   next();
 };

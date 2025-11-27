@@ -1,42 +1,61 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export const submitResult = async (req, res) => {
+// POST jawaban satu survey
+export const submitJawaban = async (req, res) => {
   try {
-    const { surveyId, respondent, answers } = req.body;
-    if (!surveyId || !answers) return res.status(400).json({ message: "surveyId & answers required" });
+    const { surveyId, jawaban } = req.body;
 
-    // answers sebaiknya dikirim sebagai objek JSON dari frontend
-    const result = await prisma.surveyResult.create({
-      data: {
-        surveyId: Number(surveyId),
-        respondent,
-        answers: answers // prisma Json
-      }
+    if (!surveyId || !jawaban || !Array.isArray(jawaban)) {
+      return res.status(400).json({ message: "surveyId & jawaban array required" });
+    }
+
+    // Map jawaban untuk createMany
+    const jawabanData = jawaban.map(j => ({
+      pertanyaanId: Number(j.pertanyaanId),
+      surveyId: Number(surveyId),
+      jawaban: j.jawaban
+    }));
+
+    const result = await prisma.jawaban.createMany({ data: jawabanData });
+
+    res.status(201).json({
+      message: "Jawaban berhasil disimpan",
+      inserted: result.count
     });
-    res.status(201).json(result);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-export const getResultsBySurvey = async (req, res) => {
+// GET jawaban per survey
+export const getJawabanBySurvey = async (req, res) => {
   try {
     const surveyId = Number(req.params.surveyId);
-    const results = await prisma.surveyResult.findMany({
-      where: { surveyId },
-      orderBy: { createdAt: "desc" }
-    });
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
-export const getAllResults = async (req, res) => {
-  try {
-    const results = await prisma.surveyResult.findMany({ orderBy: { createdAt: "desc" }});
-    res.json(results);
+    const jawabanList = await prisma.jawaban.findMany({
+      where: { surveyId },
+      select: {
+        id: true,
+        jawaban: true,
+        pertanyaan: {
+          select: {
+            teks: true,
+            tipe: true,
+            urutan: true
+          }
+        }
+      },
+      orderBy: { pertanyaan: { urutan: "asc" } }
+    });
+
+    res.json({
+      surveyId,
+      totalJawaban: jawabanList.length,
+      jawabanList
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

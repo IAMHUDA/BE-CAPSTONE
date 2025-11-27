@@ -4,10 +4,27 @@ import path from "path";
 
 export const createUMKM = async (req, res) => {
   try {
-    // multer menyimpan file; akses via req.files atau req.file
+    console.log("Request body:", req.body);
+    console.log("Request files:", req.files);
+    
     const { namaUsaha, namaPemilik, tahunBerdiri, jumlahKaryawan, jangkauanPemasaran } = req.body;
+    
+    // Debug file upload
+    if (req.files) {
+      console.log("Files received:");
+      if (req.files["fotoProduk"]) {
+        console.log("Foto produk:", req.files["fotoProduk"][0]);
+      }
+      if (req.files["dokumenIzin"]) {
+        console.log("Dokumen izin:", req.files["dokumenIzin"][0]);
+      }
+    }
+
     const fotoProduk = req.files && req.files["fotoProduk"] ? `/uploads/${req.files["fotoProduk"][0].filename}` : null;
     const dokumenIzin = req.files && req.files["dokumenIzin"] ? `/uploads/${req.files["dokumenIzin"][0].filename}` : null;
+
+    console.log("Foto path:", fotoProduk);
+    console.log("Dokumen path:", dokumenIzin);
 
     const umkm = await prisma.uMKM.create({
       data: {
@@ -22,6 +39,7 @@ export const createUMKM = async (req, res) => {
     });
     res.status(201).json(umkm);
   } catch (err) {
+    console.error("Error creating UMKM:", err);
     res.status(500).json({ error: err.message });
   }
 };
