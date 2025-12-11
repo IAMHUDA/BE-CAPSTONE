@@ -1,0 +1,83 @@
+// ===========================================
+// PRISMA SCHEMA CAPSTONE 2
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =======================
+// USERS TABLE
+// =======================
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String   @unique
+  password  String
+  role      String   @default("warga")
+  surveys   Survey[]
+  createdAt DateTime @default(now())
+}
+
+// =======================
+// SURVEY TABLE
+// =======================
+model Survey {
+  id            Int             @id @default(autoincrement())
+  namaSurvey    String
+  deskripsi     String?
+  tanggalDibuat DateTime        @default(now())
+  userId        Int
+  user          User            @relation(fields: [userId], references: [id])
+
+  pertanyaan    Pertanyaan[]
+  jawaban       Jawaban[] 
+}
+
+// =======================
+// PERTANYAAN TABLE
+// =======================
+model Pertanyaan {
+  id        Int      @id @default(autoincrement())
+  surveyId  Int
+  survey    Survey   @relation(fields: [surveyId],references: [id], onDelete: Cascade)
+
+  tipe      String     // “isian” / “pilihan_ganda”
+  teks      String
+  urutan    Int
+  opsi      String?    // JSON array string untuk opsi PG
+
+  jawaban   Jawaban[]  // ← relasi ke jawaban
+}
+
+// =======================
+// JAWABAN TABLE
+// =======================
+model Jawaban {
+  id            Int          @id @default(autoincrement())
+  pertanyaanId  Int
+  pertanyaan    Pertanyaan   @relation(fields: [pertanyaanId], references: [id])
+
+  surveyId  Int
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+
+  jawaban       String        // jawaban isian atau opsi terpilih
+}
+
+model UMKM {
+  id                 Int      @id @default(autoincrement())
+  namaUsaha          String
+  namaPemilik        String
+  tahunBerdiri       Int?
+  jumlahKaryawan     Int?
+  jangkauanPemasaran String?
+  fotoProduk         String?
+  dokumenIzin        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
