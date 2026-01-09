@@ -7,7 +7,7 @@ export const createUMKM = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Request files:", req.files);
     
-    const { namaUsaha, namaPemilik, tahunBerdiri, jumlahKaryawan, jangkauanPemasaran } = req.body;
+    const { namaUsaha, namaPemilik, noTelp, tahunBerdiri, jumlahKaryawan, jangkauanPemasaran, keteranganTambahan } = req.body;
     
     // Debug file upload
     if (req.files) {
@@ -30,9 +30,11 @@ export const createUMKM = async (req, res) => {
       data: {
         namaUsaha,
         namaPemilik,
+        noTelp,
         tahunBerdiri: tahunBerdiri ? Number(tahunBerdiri) : null,
         jumlahKaryawan: jumlahKaryawan ? Number(jumlahKaryawan) : null,
         jangkauanPemasaran,
+        keteranganTambahan,
         fotoProduk,
         dokumenIzin
       }
@@ -67,16 +69,18 @@ export const getUMKM = async (req, res) => {
 export const updateUMKM = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { namaUsaha, namaPemilik, tahunBerdiri, jumlahKaryawan, jangkauanPemasaran } = req.body;
+    const { namaUsaha, namaPemilik, noTelp, tahunBerdiri, jumlahKaryawan, jangkauanPemasaran, keteranganTambahan } = req.body;
     const fotoProduk = req.files && req.files["fotoProduk"] ? `/uploads/${req.files["fotoProduk"][0].filename}` : undefined;
     const dokumenIzin = req.files && req.files["dokumenIzin"] ? `/uploads/${req.files["dokumenIzin"][0].filename}` : undefined;
 
     const data = {
       namaUsaha,
       namaPemilik,
+      noTelp,
       tahunBerdiri: tahunBerdiri ? Number(tahunBerdiri) : undefined,
       jumlahKaryawan: jumlahKaryawan ? Number(jumlahKaryawan) : undefined,
-      jangkauanPemasaran
+      jangkauanPemasaran,
+      keteranganTambahan
     };
 
     if (fotoProduk !== undefined) data.fotoProduk = fotoProduk;

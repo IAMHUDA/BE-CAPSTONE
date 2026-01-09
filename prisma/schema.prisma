@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -61,21 +61,25 @@ model Pertanyaan {
 model Jawaban {
   id            Int          @id @default(autoincrement())
   pertanyaanId  Int
-  pertanyaan    Pertanyaan   @relation(fields: [pertanyaanId], references: [id])
+  pertanyaan    Pertanyaan   @relation(fields: [pertanyaanId], references: [id], onDelete: Cascade)
 
-  surveyId  Int
-  survey    Survey   @relation(fields: [surveyId], references: [id])
+  surveyId      Int
+  survey        Survey       @relation(fields: [surveyId], references: [id], onDelete: Cascade)
 
   jawaban       String        // jawaban isian atau opsi terpilih
+  createdAt     DateTime      @default(now())
+  submissionId  String?       // ID unik per pengisian survey
 }
 
 model UMKM {
   id                 Int      @id @default(autoincrement())
   namaUsaha          String
   namaPemilik        String
+  noTelp             String?
   tahunBerdiri       Int?
   jumlahKaryawan     Int?
   jangkauanPemasaran String?
+  keteranganTambahan String?
   fotoProduk         String?
   dokumenIzin        String?
   createdAt          DateTime @default(now())
